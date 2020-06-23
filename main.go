@@ -9,26 +9,27 @@ type Nurons []Nuron
 
 //Nuron idk its a nuron man
 type Nuron struct {
-	Inputs []Input
-	Bias   float64
+	Inputs   []float64
+	Settings NuronSettings
 }
 
-//Input input variables for nurons
-type Input struct {
-	Input  float64
-	Weight float64
+//NuronSettingsSlice Slice
+type NuronSettingsSlice []NuronSettings
+
+//NuronSettings settings for nuron
+type NuronSettings struct {
+	Weights []float64
+	Bias    float64
 }
 
 func main() {
 	inputs := []float64{1, 2, 3, 2.5}
-	weights1 := []float64{0.2, 0.8, -0.5, 1.0}
-	weights2 := []float64{0.5, -0.91, 0.26, -0.5}
-	weights3 := []float64{-0.26, -0.27, 0.17, 0.87}
-	n := Nurons{
-		NewNuron(inputs, weights1, 2),
-		NewNuron(inputs, weights2, 3),
-		NewNuron(inputs, weights3, 0.5),
-	}
+	weights := [][]float64{{0.2, 0.8, -0.5, 1.0}, {0.5, -0.91, 0.26, -0.5}, {-0.26, -0.27, 0.17, 0.87}}
+	biases := []float64{2, 3, 0.5}
+
+	settings := NewSettingsSlice(weights, biases)
+
+	n := NewNurons(inputs, settings)
 
 	fmt.Println(fmt.Sprint(CalcOutput(n)))
 
@@ -38,9 +39,9 @@ func main() {
 func (n *Nuron) CalcOutput() float64 {
 	var output float64
 	for i := 0; i < len(n.Inputs); i++ {
-		output += n.Inputs[i].Input * n.Inputs[i].Weight
+		output += n.Inputs[i] * n.Settings.Weights[i]
 	}
-	output += n.Bias
+	output += n.Settings.Bias
 	return output
 }
 
@@ -54,17 +55,29 @@ func CalcOutput(n Nurons) []float64 {
 }
 
 //NewNuron make a New Nuron
-func NewNuron(inputs []float64, weights []float64, bias float64) Nuron {
+func NewNuron(inputs []float64, settings NuronSettings) Nuron {
 	var n Nuron
+	n.Inputs = inputs
+	n.Settings = settings
+	return n
+}
 
-	for i := 0; i < len(inputs); i++ {
-		n.Inputs = append(n.Inputs, Input{
-			Input:  inputs[i],
-			Weight: weights[i],
-		})
+//NewNurons make a array of New Nurons
+func NewNurons(inputs []float64, settings NuronSettingsSlice) Nurons {
+	var n Nurons
+	for i := 0; i < len(settings); i++ {
+		n = append(n, NewNuron(inputs, settings[i]))
 	}
+	return n
+}
 
-	n.Bias = bias
-
+//NewSettingsSlice stuff
+func NewSettingsSlice(weights [][]float64, biases []float64) NuronSettingsSlice {
+	var n NuronSettingsSlice
+	if len(weights) == len(biases) {
+		for i := 0; i < len(weights); i++ {
+			n = append(n, NuronSettings{weights[i], biases[i]})
+		}
+	}
 	return n
 }
